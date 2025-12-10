@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  email          String?  @unique
+  name           String?
+  walletAddress  String   @unique
+  nonce          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ordersAccepted Order[]  @relation("OrderAccepter")
+  ordersCreated  Order[]  @relation("OrderCreator")
+
+  @@index([walletAddress])
+  @@index([email])
+}
+
+model Order {
+  id                  Int            @id @default(autoincrement())
+  title               String
+  description         String?
+  status              OrderStatus    @default(PENDING)
+  direction           TradeDirection
+  creatorId           Int
+  accepterId          Int?
+  acceptedAt          DateTime?
+  escrowId            Int?
+  escrowAddress       String?
+  escrowStatus        String?
+  escrowTxHash        String?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  completedAt         DateTime?
+  isPrivate           Boolean        @default(false)
+  shareToken          String?        @unique
+  shareTokenExpiresAt DateTime?
+  shareTokenRevoked   Boolean        @default(false)
+  accepter            User?          @relation("OrderAccepter", fields: [accepterId], references: [id])
+  creator             User           @relation("OrderCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  offeringItems       OrderItem[]    @relation("OfferingItems")
+  requestingItems     OrderItem[]    @relation("RequestingItems")
+
+  @@index([creatorId])
+  @@index([accepterId])
+  @@index([status])
+  @@index([escrowId])
+  @@index([createdAt])
+  @@index([shareToken])
+}
+
+model EscrowRecord {
+  id              Int       @id @default(autoincrement())
+  escrowId        Int       @unique
+  orderId         Int?
+  contractAddress String?
+  chain           String?
+  assetType       String?
+  tokenAddress    String?
+  amount          Decimal?  @db.Decimal(36, 0)
+  creator         String?
+  accepter        String?
+  status          String?
+  txHash          String?
+  createdAt       DateTime  @default(now())
+  fundedAt        DateTime?
+  completedAt     DateTime?
+
+  @@index([orderId])
+  @@index([creator])
+  @@index([accepter])
+  @@index([status])
+}
+
+model DisputeRecord {
+  id             Int       @id @default(autoincrement())
+  disputeId      Int       @unique
+  escrowRecordId Int?
+  initiator      String?
+  reason         String?
+  resolved       Boolean   @default(false)
+  winner         String?
+  createdAt      DateTime  @default(now())
+  resolvedAt     DateTime?
+
+  @@index([escrowRecordId])
+  @@index([initiator])
+}
+
+model OrderItem {
+  id                Int      @id @default(autoincrement())
+  name              String
+  description       String?
+  quantity          Int      @default(1)
+  unit              String?
+  estimatedValue    Decimal? @db.Decimal(18, 2)
+  currency          String?
+  category          String?
+  offeringOrderId   Int?
+  requestingOrderId Int?
+  createdAt         DateTime @default(now())
+  offeringOrder     Order?   @relation("OfferingItems", fields: [offeringOrderId], references: [id], onDelete: Cascade)
+  requestingOrder   Order?   @relation("RequestingItems", fields: [requestingOrderId], references: [id], onDelete: Cascade)
+
+  @@index([offeringOrderId])
+  @@index([requestingOrderId])
+  @@index([category])
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
+enum TradeDirection {
+  SELL
+  BUY
+}

@@ -358,9 +358,9 @@ We welcome contributions! Please follow these steps:
 
 ## 📄 License | 许可证
 
-MIT License - See [LICENSE](LICENSE) file for details
+See [LICENSE](LICENSE) file for details
 
-MIT 许可证 - 详见 [LICENSE](LICENSE) 文件
+详见 [LICENSE](LICENSE) 文件
 
 ---
 
@@ -377,3 +377,4 @@ MIT 许可证 - 详见 [LICENSE](LICENSE) 文件
 **Last Updated | 最后更新**: 2025-12-10  
 **Version | 版本**: 1.0.0  
 **Status | 状态**: Production Ready ✅ | 生产就绪 ✅
+
